@@ -1,0 +1,28 @@
+body {
+  margin:0;
+  font-family: Arial;
+  background:#111;
+  color:white;
+}
+
+#map {
+  position:absolute;
+  top:0;
+  bottom:0;
+  width:100%;
+}
+
+.panel {
+  position:absolute;
+  top:10px;
+  left:10px;
+  background:#222;
+  padding:10px;
+  border-radius:8px;
+  width:200px;
+}
+
+input, select, button {
+  width:100%;
+  margin-bottom:8px;
+}
