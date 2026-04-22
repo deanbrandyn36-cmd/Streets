@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Street Knowledge Command</title>
+  <link href="styles.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+</head>
+
+<body>
+
+<div id="login">
+  <h2>Street Knowledge Command</h2>
+  <input id="token" placeholder="Mapbox Token" />
+  <button onclick="startApp()">Enter</button>
+</div>
+
+<div id="app" style="display:none;">
+  <div id="map"></div>
+
+  <div class="panel">
+    <h3>Perimeter Tool</h3>
+
+    <label>Time Delay (minutes)</label>
+    <input id="time" type="number" />
+
+    <label>Direction</label>
+    <select id="direction">
+      <option>N</option><option>S</option><option>E</option><option>W</option>
+    </select>
+
+    <label>Travel Method</label>
+    <select id="method">
+      <option value="walk">Walk</option>
+      <option value="vehicle">Vehicle</option>
+    </select>
+
+    <button onclick="generatePerimeter()">Generate</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
