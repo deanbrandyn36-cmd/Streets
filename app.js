@@ -10,7 +10,7 @@ let appState = {
   perimeterPoints: []
 };
 
-let map;
+let map = null;
 let personalMarkers = [];
 let sharedMarkers = [];
 let perimeterMarkers = [];
@@ -65,65 +65,102 @@ const zonePolygons = [
   }
 ];
 
-document.addEventListener("DOMContentLoaded", () => {
-  loadState();
-  bindEvents();
-  purgeExpiredIntel();
-  renderAllLists();
-});
+document.addEventListener("DOMContentLoaded", initApp);
+
+function initApp() {
+  try {
+    loadState();
+    bindEvents();
+    purgeExpiredIntel();
+    renderAllLists();
+    showStartupNotice();
+  } catch (err) {
+    console.error("Startup error:", err);
+    alert("App startup error. Open Safari console or tell me what screen you see.");
+  }
+}
+
+function showStartupNotice() {
+  const loginBtn = document.getElementById("loginBtn");
+  if (loginBtn) {
+    loginBtn.textContent = "Enter App";
+  }
+}
 
 function bindEvents() {
-  document.getElementById("loginBtn").addEventListener("click", loginUser);
-  document.getElementById("logoutBtn").addEventListener("click", logoutUser);
-  document.getElementById("saveDataBtn").addEventListener("click", saveState);
+  safeBind("loginBtn", "click", loginUser);
+  safeBind("logoutBtn", "click", logoutUser);
+  safeBind("saveDataBtn", "click", saveState);
+  safeBind("addPersonalBtn", "click", addPersonalIntel);
+  safeBind("shareSelectedPersonalBtn", "click", shareLatestPersonalIntel);
+  safeBind("addSharedBtn", "click", addSharedIntel);
+  safeBind("sendMessageBtn", "click", sendMessage);
+  safeBind("recordVoiceBtn", "click", toggleVoiceRecording);
+  safeBind("updateSelfStatusBtn", "click", updateSelfStatus);
+  safeBind("generatePerimeterBtn", "click", generatePerimeter);
+  safeBind("refreshMapBtn", "click", refreshMapData);
+
+  const mapFilter = document.getElementById("mapFilter");
+  if (mapFilter) mapFilter.addEventListener("change", refreshMapData);
+
+  const zoneFilter = document.getElementById("zoneFilter");
+  if (zoneFilter) zoneFilter.addEventListener("change", refreshMapData);
 
   document.querySelectorAll(".tab-btn").forEach(btn => {
     btn.addEventListener("click", () => switchTab(btn.dataset.tab));
   });
+}
 
-  document.getElementById("addPersonalBtn").addEventListener("click", addPersonalIntel);
-  document.getElementById("shareSelectedPersonalBtn").addEventListener("click", shareLatestPersonalIntel);
-  document.getElementById("addSharedBtn").addEventListener("click", addSharedIntel);
-  document.getElementById("sendMessageBtn").addEventListener("click", sendMessage);
-  document.getElementById("recordVoiceBtn").addEventListener("click", toggleVoiceRecording);
-  document.getElementById("updateSelfStatusBtn").addEventListener("click", updateSelfStatus);
-  document.getElementById("generatePerimeterBtn").addEventListener("click", generatePerimeter);
-  document.getElementById("refreshMapBtn").addEventListener("click", refreshMapData);
-  document.getElementById("mapFilter").addEventListener("change", refreshMapData);
-  document.getElementById("zoneFilter").addEventListener("change", refreshMapData);
+function safeBind(id, eventName, handler) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.addEventListener(eventName, handler);
+  } else {
+    console.warn(`Missing element: ${id}`);
+  }
 }
 
 function loginUser() {
-  const name = document.getElementById("officerName").value.trim();
-  const badge = document.getElementById("officerBadge").value.trim();
-  const role = document.getElementById("officerRole").value;
-  const zone = document.getElementById("officerZone").value;
-  const token = document.getElementById("mapboxToken").value.trim();
+  try {
+    const name = valueOf("officerName");
+    const badge = valueOf("officerBadge");
+    const role = valueOf("officerRole");
+    const zone = valueOf("officerZone");
+    const token = valueOf("mapboxToken");
 
-  if (!name || !badge || !token) {
-    alert("Enter officer name, badge/ID, and Mapbox token.");
-    return;
+    if (!name || !badge || !token) {
+      alert("Enter officer name, badge/ID, and Mapbox token.");
+      return;
+    }
+
+    appState.user = {
+      name,
+      badge,
+      role,
+      zone,
+      status: "Active",
+      token
+    };
+
+    upsertOfficer(appState.user);
+
+    const loginScreen = document.getElementById("loginScreen");
+    const appScreen = document.getElementById("appScreen");
+    const loggedInInfo = document.getElementById("loggedInInfo");
+
+    if (loginScreen) loginScreen.classList.remove("active");
+    if (appScreen) appScreen.classList.add("active");
+    if (loggedInInfo) {
+      loggedInInfo.textContent = `${name} | ${role} | ${zone} | Status: Active`;
+    }
+
+    saveState();
+    renderOfficerStatusList();
+    initializeMap(token);
+  } catch (err) {
+    console.error("Login error:", err);
+    alert("Login failed. Check that all files were pasted completely.");
   }
-
-  appState.user = {
-    name,
-    badge,
-    role,
-    zone,
-    status: "Active",
-    token
-  };
-
-  upsertOfficer(appState.user);
-
-  document.getElementById("loginScreen").classList.remove("active");
-  document.getElementById("appScreen").classList.add("active");
-  document.getElementById("loggedInInfo").textContent =
-    `${name} | ${role} | ${zone} | Status: Active`;
-
-  initializeMap(token);
-  saveState();
-  renderOfficerStatusList();
 }
 
 function logoutUser() {
@@ -131,7 +168,6 @@ function logoutUser() {
     const officer = appState.officers.find(o => o.badge === appState.user.badge);
     if (officer) officer.status = "Offline";
   }
-
   saveState();
   location.reload();
 }
@@ -160,8 +196,11 @@ function switchTab(tabId) {
   document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
   document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
 
-  document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add("active");
-  document.getElementById(tabId).classList.add("active");
+  const targetBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+  const targetTab = document.getElementById(tabId);
+
+  if (targetBtn) targetBtn.classList.add("active");
+  if (targetTab) targetTab.classList.add("active");
 
   if (map) {
     setTimeout(() => map.resize(), 150);
@@ -169,27 +208,44 @@ function switchTab(tabId) {
 }
 
 function initializeMap(token) {
-  mapboxgl.accessToken = token;
+  try {
+    if (typeof mapboxgl === "undefined") {
+      alert("Mapbox failed to load. Check your internet connection and refresh.");
+      return;
+    }
 
-  map = new mapboxgl.Map({
-    container: "map",
-    style: "mapbox://styles/mapbox/dark-v11",
-    center: [-80.215, 26.085],
-    zoom: 11.7,
-    pitch: 45,
-    bearing: -10,
-    maxBounds: cityBounds
-  });
+    mapboxgl.accessToken = token;
 
-  map.addControl(new mapboxgl.NavigationControl());
+    if (map) {
+      map.remove();
+      map = null;
+    }
 
-  map.on("load", () => {
-    drawZones();
-    refreshMapData();
-  });
+    map = new mapboxgl.Map({
+      container: "map",
+      style: "mapbox://styles/mapbox/dark-v11",
+      center: [-80.215, 26.085],
+      zoom: 11.7,
+      pitch: 45,
+      bearing: -10,
+      maxBounds: cityBounds
+    });
+
+    map.addControl(new mapboxgl.NavigationControl());
+
+    map.on("load", () => {
+      drawZones();
+      refreshMapData();
+    });
+  } catch (err) {
+    console.error("Map init error:", err);
+    alert("Map failed to initialize. Double-check your Mapbox public token.");
+  }
 }
 
 function drawZones() {
+  if (!map) return;
+
   const featureCollection = {
     type: "FeatureCollection",
     features: zonePolygons.map(zone => ({
@@ -235,14 +291,14 @@ function addPersonalIntel() {
 
   const item = {
     id: generateId(),
-    category: document.getElementById("personalCategory").value,
-    zone: document.getElementById("personalZone").value,
-    address: document.getElementById("personalAddress").value.trim(),
-    subjectInfo: document.getElementById("personalSubjectInfo").value.trim(),
-    date: document.getElementById("personalDate").value,
-    time: document.getElementById("personalTime").value,
-    expiry: document.getElementById("personalExpiry").value,
-    notes: document.getElementById("personalNotes").value.trim(),
+    category: valueOf("personalCategory"),
+    zone: valueOf("personalZone"),
+    address: valueOf("personalAddress"),
+    subjectInfo: valueOf("personalSubjectInfo"),
+    date: valueOf("personalDate"),
+    time: valueOf("personalTime"),
+    expiry: valueOf("personalExpiry"),
+    notes: valueOf("personalNotes"),
     officer: appState.user.name,
     createdAt: new Date().toISOString()
   };
@@ -260,7 +316,7 @@ function addPersonalIntel() {
 }
 
 function shareLatestPersonalIntel() {
-  if (!appState.personalIntel.length) {
+  if (!appState.personalIntel.length || !appState.user) {
     alert("No personal intel available to share.");
     return;
   }
@@ -289,11 +345,11 @@ function addSharedIntel() {
 
   const item = {
     id: generateId(),
-    zone: document.getElementById("sharedZone").value,
-    type: document.getElementById("sharedType").value,
-    title: document.getElementById("sharedTitle").value.trim(),
-    location: document.getElementById("sharedLocation").value.trim(),
-    details: document.getElementById("sharedDetails").value.trim(),
+    zone: valueOf("sharedZone"),
+    type: valueOf("sharedType"),
+    title: valueOf("sharedTitle"),
+    location: valueOf("sharedLocation"),
+    details: valueOf("sharedDetails"),
     officer: appState.user.name,
     createdAt: new Date().toISOString()
   };
@@ -316,9 +372,9 @@ function sendMessage() {
 
   const message = {
     id: generateId(),
-    type: document.getElementById("messageType").value,
-    to: document.getElementById("messageTo").value.trim(),
-    body: document.getElementById("messageBody").value.trim(),
+    type: valueOf("messageType"),
+    to: valueOf("messageTo"),
+    body: valueOf("messageBody"),
     from: appState.user.name,
     createdAt: new Date().toISOString(),
     voice: null
@@ -338,6 +394,8 @@ function sendMessage() {
 async function toggleVoiceRecording() {
   const recordBtn = document.getElementById("recordVoiceBtn");
   const playback = document.getElementById("voicePlayback");
+
+  if (!recordBtn || !playback) return;
 
   if (!mediaRecorder) {
     try {
@@ -387,7 +445,7 @@ async function toggleVoiceRecording() {
 function updateSelfStatus() {
   if (!appState.user) return;
 
-  const newStatus = document.getElementById("selfStatus").value;
+  const newStatus = valueOf("selfStatus");
   appState.user.status = newStatus;
 
   const officer = appState.officers.find(o => o.badge === appState.user.badge);
@@ -396,8 +454,11 @@ function updateSelfStatus() {
     officer.lastSeen = new Date().toISOString();
   }
 
-  document.getElementById("loggedInInfo").textContent =
-    `${appState.user.name} | ${appState.user.role} | ${appState.user.zone} | Status: ${newStatus}`;
+  const loggedInInfo = document.getElementById("loggedInInfo");
+  if (loggedInInfo) {
+    loggedInInfo.textContent =
+      `${appState.user.name} | ${appState.user.role} | ${appState.user.zone} | Status: ${newStatus}`;
+  }
 
   saveState();
   renderOfficerStatusList();
@@ -409,11 +470,11 @@ function generatePerimeter() {
     return;
   }
 
-  const location = document.getElementById("perimeterLocation").value.trim();
-  const delay = Number(document.getElementById("perimeterDelay").value || 0);
-  const direction = document.getElementById("perimeterDirection").value;
-  const method = document.getElementById("perimeterMethod").value;
-  const notes = document.getElementById("perimeterNotes").value.trim();
+  const location = valueOf("perimeterLocation");
+  const delay = Number(valueOf("perimeterDelay") || 0);
+  const direction = valueOf("perimeterDirection");
+  const method = valueOf("perimeterMethod");
+  const notes = valueOf("perimeterNotes");
 
   const center = map.getCenter();
   const radius = calculateRadius(delay, method);
@@ -483,8 +544,8 @@ function refreshMapData() {
 
   clearMapMarkers();
 
-  const filter = document.getElementById("mapFilter")?.value || "all";
-  const zoneFilter = document.getElementById("zoneFilter")?.value || "All Zones";
+  const filter = valueOf("mapFilter", "all");
+  const zoneFilter = valueOf("zoneFilter", "All Zones");
 
   if (filter === "all" || filter === "personal") {
     appState.personalIntel.forEach(item => {
@@ -592,10 +653,16 @@ function renderAllLists() {
   renderZoneFeed();
 
   if (appState.user) {
-    document.getElementById("loginScreen").classList.remove("active");
-    document.getElementById("appScreen").classList.add("active");
-    document.getElementById("loggedInInfo").textContent =
-      `${appState.user.name} | ${appState.user.role} | ${appState.user.zone} | Status: ${appState.user.status}`;
+    const loginScreen = document.getElementById("loginScreen");
+    const appScreen = document.getElementById("appScreen");
+    const loggedInInfo = document.getElementById("loggedInInfo");
+
+    if (loginScreen) loginScreen.classList.remove("active");
+    if (appScreen) appScreen.classList.add("active");
+    if (loggedInInfo) {
+      loggedInInfo.textContent =
+        `${appState.user.name} | ${appState.user.role} | ${appState.user.zone} | Status: ${appState.user.status}`;
+    }
 
     if (appState.user.token && !map) {
       initializeMap(appState.user.token);
@@ -605,6 +672,7 @@ function renderAllLists() {
 
 function renderPersonalList() {
   const container = document.getElementById("personalList");
+  if (!container) return;
   container.innerHTML = "";
 
   if (!appState.personalIntel.length) {
@@ -628,6 +696,7 @@ function renderPersonalList() {
 
 function renderSharedList() {
   const container = document.getElementById("sharedList");
+  if (!container) return;
   container.innerHTML = "";
 
   if (!appState.sharedIntel.length) {
@@ -651,6 +720,7 @@ function renderSharedList() {
 
 function renderMessageList() {
   const container = document.getElementById("messageList");
+  if (!container) return;
   container.innerHTML = "";
 
   if (!appState.messages.length) {
@@ -680,6 +750,7 @@ function renderMessageList() {
 
 function renderOfficerStatusList() {
   const container = document.getElementById("officerStatusList");
+  if (!container) return;
   container.innerHTML = "";
 
   if (!appState.officers.length) {
@@ -708,6 +779,7 @@ function renderOfficerStatusList() {
 
 function renderPerimeterList() {
   const container = document.getElementById("perimeterPointList");
+  if (!container) return;
   container.innerHTML = "";
 
   if (!appState.perimeterPoints.length) {
@@ -733,18 +805,9 @@ function renderPerimeterList() {
   });
 }
 
-function setPointStatus(pointId, status) {
-  const point = appState.perimeterPoints.find(p => p.id === pointId);
-  if (!point) return;
-
-  point.status = status;
-  saveState();
-  renderPerimeterList();
-  refreshMapData();
-}
-
 function renderPerimeterHistory() {
   const container = document.getElementById("perimeterHistoryList");
+  if (!container) return;
   container.innerHTML = "";
 
   if (!appState.perimeterHistory.length) {
@@ -772,7 +835,7 @@ function renderZoneFeed() {
   const container = document.getElementById("zoneFeed");
   if (!container) return;
 
-  const zoneFilter = document.getElementById("zoneFilter")?.value || "All Zones";
+  const zoneFilter = valueOf("zoneFilter", "All Zones");
   container.innerHTML = "";
 
   let items = [...appState.sharedIntel];
@@ -797,24 +860,36 @@ function renderZoneFeed() {
   });
 }
 
+function setPointStatus(pointId, status) {
+  const point = appState.perimeterPoints.find(p => p.id === pointId);
+  if (!point) return;
+
+  point.status = status;
+  saveState();
+  renderPerimeterList();
+  refreshMapData();
+}
+
+window.setPointStatus = setPointStatus;
+
 function clearPersonalForm() {
-  document.getElementById("personalAddress").value = "";
-  document.getElementById("personalSubjectInfo").value = "";
-  document.getElementById("personalDate").value = "";
-  document.getElementById("personalTime").value = "";
-  document.getElementById("personalExpiry").value = "";
-  document.getElementById("personalNotes").value = "";
+  setValue("personalAddress", "");
+  setValue("personalSubjectInfo", "");
+  setValue("personalDate", "");
+  setValue("personalTime", "");
+  setValue("personalExpiry", "");
+  setValue("personalNotes", "");
 }
 
 function clearSharedForm() {
-  document.getElementById("sharedTitle").value = "";
-  document.getElementById("sharedLocation").value = "";
-  document.getElementById("sharedDetails").value = "";
+  setValue("sharedTitle", "");
+  setValue("sharedLocation", "");
+  setValue("sharedDetails", "");
 }
 
 function clearMessageForm() {
-  document.getElementById("messageTo").value = "";
-  document.getElementById("messageBody").value = "";
+  setValue("messageTo", "");
+  setValue("messageBody", "");
 }
 
 function purgeExpiredIntel() {
@@ -842,6 +917,16 @@ function loadState() {
   }
 }
 
+function valueOf(id, fallback = "") {
+  const el = document.getElementById(id);
+  return el ? (el.value || "").trim() : fallback;
+}
+
+function setValue(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.value = value;
+}
+
 function generateId() {
   return Math.random().toString(36).slice(2, 10);
 }
@@ -850,16 +935,16 @@ function formatDate(value) {
   if (!value) return "N/A";
   try {
     return new Date(value).toLocaleString();
-  } catch {
+  } catch (err) {
     return value;
   }
 }
 
 function escapeHtml(str) {
   return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    .split("&").join("&amp;")
+    .split("<").join("&lt;")
+    .split(">").join("&gt;")
+    .split('"').join("&quot;")
+    .split("'").join("&#039;");
 }
