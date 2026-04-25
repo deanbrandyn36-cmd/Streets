@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>STREETS | Street Knowledge Command</title>
+  <title>STREETS | Know Your Streets</title>
 
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=4" />
 
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
@@ -15,7 +15,7 @@
   <div id="loginScreen" class="login-screen">
     <div class="login-card">
       <img src="logo.png" class="login-logo" alt="STREETS Logo" />
-      <h1>Street Knowledge Command</h1>
+      <h1>Know Your Streets</h1>
       <p>Patrol intel, zone awareness, messaging, and perimeter support.</p>
 
       <label>Officer Name</label>
@@ -49,7 +49,7 @@
       <label>Mapbox Public Token</label>
       <input id="mapboxToken" type="text" placeholder="Paste Mapbox public token" />
 
-      <button id="loginBtn" class="primary-btn">Enter App</button>
+      <button id="loginBtn" class="primary-btn" onclick="login()">Enter App</button>
     </div>
   </div>
 
@@ -59,7 +59,7 @@
         <img src="logo-icon.png" class="brand-icon" alt="STREETS Icon" />
         <div>
           <div class="brand-title">STREETS</div>
-          <div class="brand-subtitle">Street Knowledge Command</div>
+          <div class="brand-subtitle">Know Your Streets</div>
         </div>
       </div>
 
@@ -97,6 +97,11 @@
         <button class="quick-btn" data-view="messageView">
           <span>✉</span>
           Messages
+        </button>
+
+        <button class="quick-btn" data-view="officersView">
+          <span>👮</span>
+          Officers
         </button>
 
         <button class="quick-btn" data-view="perimeterView">
@@ -192,6 +197,15 @@
       </section>
     </main>
 
+    <main id="officersView" class="view">
+      <button class="back-btn" data-view="homeView">← Back</button>
+
+      <section class="panel">
+        <div class="section-title">Active Officers</div>
+        <div id="officerFeed" class="feed-list"></div>
+      </section>
+    </main>
+
     <main id="perimeterView" class="view">
       <button class="back-btn" data-view="homeView">← Back</button>
 
@@ -240,6 +254,6 @@
     </main>
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
