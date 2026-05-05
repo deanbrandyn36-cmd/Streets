@@ -1,5 +1,5 @@
 const MAPBOX_TOKEN = "pk.eyJ1IjoiYmVkZWFuMjEiLCJhIjoiY21qYTZ1MmxtMDJpdzNkcHRld3Zjb2pkNCJ9.TzLQoe4r-rvbJ-cjTH8DiA";
-const STORAGE_KEY = "streetsRenderV6";
+const STORAGE_KEY = "streetsMobileV7";
 
 const ZONE_NAMES = [
   "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5",
@@ -61,7 +61,6 @@ function init() {
   loadState();
   populateSelects();
   bindEvents();
-  startClock();
   renderAll();
 
   if (state.user) {
@@ -76,6 +75,7 @@ function populateSelects() {
     if (!select) return;
     select.innerHTML = ZONE_NAMES.map(z => `<option value="${z}">${z}</option>`).join("");
   });
+
   renderZoneToggles();
 }
 
@@ -87,9 +87,6 @@ function bindEvents() {
   safeClick("sendMessageBtn", sendMessage);
   safeClick("recordVoiceBtn", toggleVoiceRecording);
   safeClick("generatePerimeterBtn", generatePerimeter);
-  safeClick("focusMapBtn", focusCity);
-  safeClick("clearAlertsBtn", clearAlerts);
-  safeClick("applyMapStyleBtn", applyMapStyle);
 
   document.querySelectorAll("[data-view]").forEach(btn => {
     btn.addEventListener("click", () => showView(btn.dataset.view));
@@ -131,7 +128,7 @@ function showApp() {
   byId("loginScreen").classList.add("hidden");
   byId("appScreen").classList.remove("hidden");
 
-  byId("userInfo").textContent = `${state.user.name} | ${state.user.zone}`;
+  byId("officerDisplay").textContent = `${state.user.name} | ${state.user.zone}`;
   byId("intelZone").value = state.user.zone;
   byId("perimeterZone").value = state.user.zone;
 }
@@ -146,7 +143,7 @@ function showView(viewId) {
   document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
   byId(viewId).classList.add("active");
 
-  document.querySelectorAll(".nav-btn, .mobile-tab, .mobile-add").forEach(btn => {
+  document.querySelectorAll(".nav-tab, .nav-add").forEach(btn => {
     btn.classList.toggle("active", btn.dataset.view === viewId);
   });
 
@@ -163,7 +160,7 @@ function initMap() {
 
   map = new mapboxgl.Map({
     container: "map",
-    style: val("mapStyle") || "mapbox://styles/mapbox/dark-v11",
+    style: "mapbox://styles/mapbox/dark-v11",
     center: miramarCenter,
     zoom: 11.5,
     pitch: 42,
@@ -175,14 +172,12 @@ function initMap() {
 
   map.on("load", () => {
     drawZones();
-    focusCity();
+    map.fitBounds(cityBounds, { padding: 25 });
     refreshMap();
   });
 }
 
 function drawZones() {
-  if (!map) return;
-
   const data = {
     type: "FeatureCollection",
     features: zones.map(z => ({
@@ -211,15 +206,6 @@ function drawZones() {
   }
 }
 
-function focusCity() {
-  if (map) map.fitBounds(cityBounds, { padding: 30 });
-}
-
-function applyMapStyle() {
-  if (!map) return;
-  initMap();
-}
-
 function renderZoneToggles() {
   const container = byId("zoneToggles");
   if (!container) return;
@@ -237,6 +223,7 @@ function toggleZone(zone) {
   } else {
     state.activeZones.push(zone);
   }
+
   saveState();
   renderZoneToggles();
   refreshMap();
@@ -272,6 +259,7 @@ function addIntel(shared) {
 
   state.intel.unshift(item);
   addNotification(`${shared ? "Shared" : "Personal"} ${item.type} intel added in ${zone}`);
+
   clearIntelForm();
   saveState();
   renderAll();
@@ -282,7 +270,9 @@ function addIntel(shared) {
 function deleteIntel(id) {
   const item = state.intel.find(i => i.id === id);
   state.intel = state.intel.filter(i => i.id !== id);
+
   if (item) addNotification(`Intel deleted from ${item.zone}`);
+
   saveState();
   renderAll();
   refreshMap();
@@ -324,6 +314,7 @@ function generatePerimeter() {
 
   state.perimeters.unshift(perimeter);
   addNotification(`4-point perimeter generated: ${location} | ${zone}`);
+
   saveState();
   renderAll();
   refreshMap();
@@ -354,9 +345,12 @@ function setPointStatus(perimeterId, pointId, status) {
   if (!point) return;
 
   point.status = status;
+
   removeNotificationByPrefix(`PERIMETER LOCKED: ${perimeter.location}`);
 
-  if (isPerimeterLocked(perimeter)) addNotification(`PERIMETER LOCKED: ${perimeter.location}`);
+  if (isPerimeterLocked(perimeter)) {
+    addNotification(`PERIMETER LOCKED: ${perimeter.location}`);
+  }
 
   saveState();
   renderAll();
@@ -398,6 +392,7 @@ function refreshMap() {
   state.perimeters.forEach(perimeter => {
     perimeter.points.forEach(point => {
       let cls = "perimeter-red";
+
       if (point.status === "covered") cls = "perimeter-green";
       if (point.status === "enroute") cls = "perimeter-yellow";
       if (isPerimeterLocked(perimeter)) cls += " flash-alert";
@@ -423,6 +418,7 @@ function coordsForIntel(item) {
   const zone = zones.find(z => z.id === item.zone);
   const base = zone ? zone.center : miramarCenter;
   const hash = hashText(item.location + item.subject + item.notes);
+
   return {
     lng: base[0] + ((hash % 10) - 5) * 0.0015,
     lat: base[1] + (((hash >> 3) % 10) - 5) * 0.0015
@@ -449,6 +445,7 @@ function sendMessage() {
   addNotification(`Message sent to ${to}`);
   byId("messageTo").value = "";
   byId("messageBody").value = "";
+
   saveState();
   renderAll();
 }
@@ -484,6 +481,7 @@ async function toggleVoiceRecording() {
         mediaRecorder.stream.getTracks().forEach(track => track.stop());
         mediaRecorder = null;
         btn.textContent = "Voice Note";
+
         saveState();
         renderAll();
       };
@@ -535,7 +533,6 @@ function renderAll() {
   renderMessages();
   renderOfficers();
   renderPerimeters();
-  renderRightPanel();
 }
 
 function renderStats() {
@@ -547,7 +544,10 @@ function renderStats() {
 function renderNotificationBar() {
   const bar = byId("notificationBar");
   if (!bar) return;
-  bar.textContent = state.notifications.length ? state.notifications[0].message : "No active notifications.";
+
+  bar.textContent = state.notifications.length
+    ? state.notifications[0].message
+    : "No active notifications.";
 }
 
 function renderHomeFeed() {
@@ -560,7 +560,9 @@ function renderHomeFeed() {
     ...state.perimeters.slice(0, 5).map(p => ({ title: "Active Perimeter", body: `${p.location} | ${p.zone}`, meta: `${p.createdBy} | ${formatDate(p.createdAt)}` }))
   ].slice(0, 8);
 
-  container.innerHTML = updates.length ? updates.map(cardHtml).join("") : `<div class="feed-card">No recent updates.</div>`;
+  container.innerHTML = updates.length
+    ? updates.map(cardHtml).join("")
+    : `<div class="feed-card">No recent updates.</div>`;
 }
 
 function renderIntelFeed() {
@@ -568,84 +570,71 @@ function renderIntelFeed() {
   if (!container) return;
 
   const items = state.intel.filter(i => i.shared).filter(i => state.activeZones.includes(i.zone));
-  container.innerHTML = items.length ? items.map(item => `
-    <div class="feed-card">
-      <h4>${escapeHtml(item.type)} | ${escapeHtml(item.zone)}</h4>
-      <div class="feed-meta">${escapeHtml(item.officer)} | ${formatDate(item.createdAt)}</div>
-      <div><strong>Location:</strong> ${escapeHtml(item.location || "N/A")}</div>
-      <div><strong>Info:</strong> ${escapeHtml(item.subject || "N/A")}</div>
-      <div><strong>Notes:</strong> ${escapeHtml(item.notes || "N/A")}</div>
-      <div class="feed-actions">
-        <button class="delete-btn" onclick="deleteIntel('${item.id}')">Delete Intel</button>
+
+  container.innerHTML = items.length
+    ? items.map(item => `
+      <div class="feed-card">
+        <h4>${escapeHtml(item.type)} | ${escapeHtml(item.zone)}</h4>
+        <div class="feed-meta">${escapeHtml(item.officer)} | ${formatDate(item.createdAt)}</div>
+        <div><strong>Location:</strong> ${escapeHtml(item.location || "N/A")}</div>
+        <div><strong>Info:</strong> ${escapeHtml(item.subject || "N/A")}</div>
+        <div><strong>Notes:</strong> ${escapeHtml(item.notes || "N/A")}</div>
+        <div class="feed-actions">
+          <button class="delete-btn" onclick="deleteIntel('${item.id}')">Delete Intel</button>
+        </div>
       </div>
-    </div>
-  `).join("") : `<div class="feed-card">No shared intel for selected zones.</div>`;
+    `).join("")
+    : `<div class="feed-card">No shared intel for selected zones.</div>`;
 }
 
 function renderMessages() {
   const container = byId("messageFeed");
   if (!container) return;
 
-  container.innerHTML = state.messages.length ? state.messages.map(m => `
-    <div class="feed-card">
-      <h4>To: ${escapeHtml(m.to)}</h4>
-      <div class="feed-meta">From: ${escapeHtml(m.from)} | ${formatDate(m.createdAt)}</div>
-      <div>${escapeHtml(m.body)}</div>
-    </div>
-  `).join("") : `<div class="feed-card">No messages.</div>`;
+  container.innerHTML = state.messages.length
+    ? state.messages.map(m => `
+      <div class="feed-card">
+        <h4>To: ${escapeHtml(m.to)}</h4>
+        <div class="feed-meta">From: ${escapeHtml(m.from)} | ${formatDate(m.createdAt)}</div>
+        <div>${escapeHtml(m.body)}</div>
+      </div>
+    `).join("")
+    : `<div class="feed-card">No messages.</div>`;
 }
 
 function renderOfficers() {
   const container = byId("officerFeed");
   if (!container) return;
 
-  container.innerHTML = state.officers.length ? state.officers.map(o => `
-    <div class="feed-card" onclick="messageOfficer('${escapeForClick(o.name)}')">
-      <h4><span class="status-dot green"></span>${escapeHtml(o.name)}</h4>
-      <div class="feed-meta">${escapeHtml(o.role)} | ${escapeHtml(o.zone)} | Badge: ${escapeHtml(o.badge)}</div>
-      <div>Tap to message</div>
-    </div>
-  `).join("") : `<div class="feed-card">No active units.</div>`;
+  container.innerHTML = state.officers.length
+    ? state.officers.map(o => `
+      <div class="feed-card" onclick="messageOfficer('${escapeForClick(o.name)}')">
+        <h4><span class="status-dot green"></span>${escapeHtml(o.name)}</h4>
+        <div class="feed-meta">${escapeHtml(o.role)} | ${escapeHtml(o.zone)} | Badge: ${escapeHtml(o.badge)}</div>
+        <div>Tap to message</div>
+      </div>
+    `).join("")
+    : `<div class="feed-card">No active officers.</div>`;
 }
 
 function renderPerimeters() {
   const container = byId("activePerimeters");
   if (!container) return;
 
-  container.innerHTML = state.perimeters.length ? state.perimeters.map(perimeterHtml).join("") : `<div class="feed-card">No active perimeters.</div>`;
-}
-
-function renderRightPanel() {
-  const rp = byId("rightPerimeters");
-  const ro = byId("rightOfficers");
-  const ra = byId("rightAlerts");
-
-  if (rp) rp.innerHTML = state.perimeters.slice(0, 4).map(p => `
-    <div class="compact-card">
-      <h4>${escapeHtml(p.location)}</h4>
-      <div class="feed-meta">${escapeHtml(p.zone)} | ${isPerimeterLocked(p) ? "LOCKED" : "ACTIVE"}</div>
-    </div>
-  `).join("") || `<div class="compact-card">No active perimeters.</div>`;
-
-  if (ro) ro.innerHTML = state.officers.slice(0, 6).map(o => `
-    <div class="compact-card">
-      <h4><span class="status-dot green"></span>${escapeHtml(o.name)}</h4>
-      <div class="feed-meta">${escapeHtml(o.zone)} | ${escapeHtml(o.role)}</div>
-    </div>
-  `).join("") || `<div class="compact-card">No active units.</div>`;
-
-  if (ra) ra.innerHTML = state.notifications.slice(0, 5).map(n => `
-    <div class="compact-card">${escapeHtml(n.message)}</div>
-  `).join("") || `<div class="compact-card">No alerts.</div>`;
+  container.innerHTML = state.perimeters.length
+    ? state.perimeters.map(perimeterHtml).join("")
+    : `<div class="feed-card">No active perimeters.</div>`;
 }
 
 function perimeterHtml(p) {
   const locked = isPerimeterLocked(p);
+
   return `
     <div class="feed-card">
       ${locked ? `<div class="locked-banner">PERIMETER LOCKED</div>` : ""}
       <h4>${escapeHtml(p.location)}</h4>
-      <div class="feed-meta">${escapeHtml(p.zone)} | ${escapeHtml(p.method)} | ${escapeHtml(String(p.delay))} min | ${formatDate(p.createdAt)}</div>
+      <div class="feed-meta">${escapeHtml(p.zone)} | ${escapeHtml(p.method)} | ${escapeHtml(String(p.delay))} min</div>
+
       ${p.points.map(point => `
         <div class="feed-card">
           <h4>${escapeHtml(point.label)} — ${escapeHtml(point.intersection)}</h4>
@@ -657,6 +646,7 @@ function perimeterHtml(p) {
           </div>
         </div>
       `).join("")}
+
       <div class="feed-actions">
         <button class="break-btn" onclick="breakDownPerimeter('${p.id}')">Break Down Perimeter</button>
       </div>
@@ -683,12 +673,6 @@ function addNotification(message) {
   state.notifications = state.notifications.slice(0, 20);
 }
 
-function clearAlerts() {
-  state.notifications = [];
-  saveState();
-  renderAll();
-}
-
 function removeNotificationByPrefix(prefix) {
   state.notifications = state.notifications.filter(n => !n.message.startsWith(prefix));
 }
@@ -703,13 +687,6 @@ function clearIntelForm() {
 function purgeExpiredIntel() {
   const today = new Date().toISOString().split("T")[0];
   state.intel = state.intel.filter(i => !i.expiry || i.expiry >= today);
-}
-
-function startClock() {
-  setInterval(() => {
-    const el = byId("systemClock");
-    if (el) el.textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  }, 1000);
 }
 
 function safeClick(id, handler) {
@@ -741,6 +718,7 @@ function loadState() {
 
   try {
     state = { ...state, ...JSON.parse(raw) };
+
     if (!Array.isArray(state.activeZones)) state.activeZones = [...ZONE_NAMES];
     if (!Array.isArray(state.perimeters)) state.perimeters = [];
     if (!Array.isArray(state.officers)) state.officers = [];
@@ -764,10 +742,12 @@ function formatDate(value) {
 function hashText(text) {
   let hash = 0;
   text = String(text || "");
+
   for (let i = 0; i < text.length; i++) {
     hash = (hash << 5) - hash + text.charCodeAt(i);
     hash |= 0;
   }
+
   return Math.abs(hash);
 }
 
