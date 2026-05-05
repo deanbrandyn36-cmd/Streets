@@ -3,20 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>STREETS | Know Your Streets</title>
+  <title>STREETS | Intel in Motion</title>
 
-  <link rel="stylesheet" href="styles.css?v=5" />
+  <link rel="stylesheet" href="styles.css?v=6" />
 
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
 </head>
 
 <body>
-  <div id="loginScreen" class="login-screen">
+  <section id="loginScreen" class="login-screen">
     <div class="login-card">
       <img src="logo.png" class="login-logo" alt="STREETS Logo" />
-      <h1>Know Your Streets</h1>
-      <p>Patrol intel, zone awareness, messaging, and perimeter support.</p>
+      <h1>STREETS</h1>
+      <p>Intel in Motion</p>
 
       <label>Officer Name</label>
       <input id="officerName" type="text" placeholder="Officer name" />
@@ -25,249 +25,275 @@
       <input id="officerBadge" type="text" placeholder="Badge / ID" />
 
       <label>Assigned Zone</label>
-      <select id="officerZone">
-        <option value="Zone 1">Zone 1</option>
-        <option value="Zone 2">Zone 2</option>
-        <option value="Zone 3">Zone 3</option>
-        <option value="Zone 4">Zone 4</option>
-        <option value="Zone 5">Zone 5</option>
-        <option value="Zone 6">Zone 6</option>
-        <option value="Zone 7">Zone 7</option>
-        <option value="Zone 8">Zone 8</option>
-        <option value="Zone 9">Zone 9</option>
-        <option value="Zone 10">Zone 10</option>
-      </select>
+      <select id="officerZone"></select>
 
       <label>Role</label>
       <select id="officerRole">
-        <option value="Officer">Officer</option>
+        <option value="Patrol Officer">Patrol Officer</option>
         <option value="Sergeant">Sergeant</option>
         <option value="OIC">OIC</option>
         <option value="Command Staff">Command Staff</option>
+        <option value="RTCC">RTCC</option>
       </select>
-
-      <label>Mapbox Public Token</label>
-      <input id="mapboxToken" type="text" placeholder="Paste Mapbox public token" />
 
       <button id="loginBtn" class="primary-btn" onclick="login()">Enter App</button>
     </div>
-  </div>
+  </section>
 
-  <div id="appScreen" class="app-screen hidden">
-    <header class="app-header">
-      <div class="brand-block">
-        <img src="logo-icon.png" class="brand-icon" alt="STREETS Icon" />
+  <section id="appScreen" class="app-screen hidden">
+    <header class="topbar">
+      <div class="brand">
+        <img src="logo-icon.png" class="brand-icon" alt="STREETS" />
         <div>
           <div class="brand-title">STREETS</div>
-          <div class="brand-subtitle">Know Your Streets</div>
+          <div class="brand-subtitle">Intel in Motion</div>
         </div>
       </div>
 
-      <div class="officer-block">
-        <div id="officerDisplay">Officer</div>
-        <button id="logoutBtn" class="small-danger">Logout</button>
+      <div class="topbar-center">
+        <div class="system-label">Live Operations</div>
+        <div id="systemClock" class="system-clock">--:--</div>
+      </div>
+
+      <div class="user-strip">
+        <div id="userInfo">Officer</div>
+        <div><span class="status-dot green"></span>Active</div>
+        <button id="logoutBtn" class="logout-btn">Logout</button>
       </div>
     </header>
 
-    <section class="map-card">
-      <div id="map"></div>
-    </section>
+    <div class="desktop-shell">
+      <aside class="sidebar">
+        <button class="nav-btn active" data-view="dashboardView">⌂ Dashboard</button>
+        <button class="nav-btn" data-view="feedView">☷ Intel Feed</button>
+        <button class="nav-btn" data-view="addView">＋ Add Intel</button>
+        <button class="nav-btn" data-view="perimeterView">◇ Perimeters</button>
+        <button class="nav-btn" data-view="messagesView">✉ Messages</button>
+        <button class="nav-btn" data-view="officersView">● Units</button>
+        <button class="nav-btn" data-view="settingsView">⚙ Settings</button>
 
-    <section id="notificationBar" class="notification-bar">
-      No active notifications.
-    </section>
+        <div class="mini-panel">
+          <div class="mini-title">Zone Toggle</div>
+          <div id="zoneToggles" class="zone-grid"></div>
+        </div>
+      </aside>
 
-    <section class="zone-toggle-card">
-      <div class="section-title">Zone Intel Toggle</div>
-      <div id="zoneToggles" class="zone-toggle-grid"></div>
-    </section>
+      <main class="main-area">
+        <section class="map-panel">
+          <div class="map-toolbar">
+            <div>
+              <div class="map-title">Live Map</div>
+              <div class="map-subtitle">Miramar zone model · shared intel · active perimeters</div>
+            </div>
+            <div class="map-actions">
+              <button id="focusMapBtn">Focus City</button>
+              <button id="clearAlertsBtn">Clear Alerts</button>
+            </div>
+          </div>
 
-    <main id="homeView" class="view active">
-      <section class="quick-grid">
-        <button class="quick-btn" data-view="intelView">
-          <span>＋</span>
-          Add Intel
-        </button>
+          <div id="map"></div>
 
-        <button class="quick-btn" data-view="feedView">
-          <span>●</span>
-          Intel Feed
-        </button>
+          <div class="map-legend">
+            <span><i class="legend-dot blue"></i>Intel</span>
+            <span><i class="legend-dot red"></i>Unassigned</span>
+            <span><i class="legend-dot yellow"></i>Enroute</span>
+            <span><i class="legend-dot green"></i>Covered</span>
+          </div>
+        </section>
 
-        <button class="quick-btn" data-view="messageView">
-          <span>✉</span>
-          Messages
-        </button>
+        <section id="notificationBar" class="alert-bar">No active notifications.</section>
 
-        <button class="quick-btn" data-view="officersView">
-          <span>👮</span>
-          Officers
-        </button>
+        <section id="dashboardView" class="view active">
+          <div class="dashboard-grid">
+            <div class="stat-card">
+              <div class="stat-label">Active Intel</div>
+              <div id="statIntel" class="stat-number">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Active Perimeters</div>
+              <div id="statPerimeters" class="stat-number">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Active Units</div>
+              <div id="statOfficers" class="stat-number">0</div>
+            </div>
+          </div>
 
-        <button class="quick-btn wide-btn" data-view="perimeterView">
-          <span>◇</span>
-          Perimeter
-        </button>
-      </section>
+          <div class="content-card">
+            <div class="section-title">Recent Activity</div>
+            <div id="homeFeed" class="feed-list"></div>
+          </div>
+        </section>
 
-      <section class="panel">
-        <div class="section-title">Recent Updates</div>
-        <div id="homeFeed" class="feed-list"></div>
-      </section>
-    </main>
+        <section id="feedView" class="view">
+          <div class="content-card">
+            <div class="section-title">Shared Intel Feed</div>
+            <div id="intelFeed" class="feed-list"></div>
+          </div>
+        </section>
 
-    <main id="intelView" class="view">
-      <button class="back-btn" data-view="homeView">← Back</button>
+        <section id="addView" class="view">
+          <div class="content-card">
+            <div class="section-title">Add Intel</div>
 
-      <section class="panel">
-        <div class="section-title">Add Intel</div>
+            <div class="type-grid">
+              <button class="intel-type active" data-type="Vehicle">Vehicle</button>
+              <button class="intel-type" data-type="Person">Person</button>
+              <button class="intel-type" data-type="Address">Address</button>
+              <button class="intel-type" data-type="Follow-Up">Follow-Up</button>
+            </div>
 
-        <div class="type-grid">
-          <button class="intel-type active" data-type="Vehicle">Vehicle</button>
-          <button class="intel-type" data-type="Person">Person</button>
-          <button class="intel-type" data-type="Address">Address</button>
-          <button class="intel-type" data-type="Follow-Up">Follow-Up</button>
+            <label>Zone</label>
+            <select id="intelZone"></select>
+
+            <label>Location / Intersection</label>
+            <input id="intelLocation" placeholder="Example: Miramar Pkwy & SW 64 Ave" />
+
+            <label>Subject / Vehicle Info</label>
+            <input id="intelSubject" placeholder="Plate, person, vehicle, descriptor" />
+
+            <label>Notes</label>
+            <textarea id="intelNotes" rows="4" placeholder="Brief notes"></textarea>
+
+            <label>Expiration Date</label>
+            <input id="intelExpiry" type="date" />
+
+            <div class="action-row">
+              <button id="savePersonalIntelBtn">Save Personal</button>
+              <button id="shareZoneIntelBtn" class="primary-btn">Share to Zone</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="perimeterView" class="view">
+          <div class="content-card">
+            <div class="section-title">Create Perimeter</div>
+
+            <label>Incident Area</label>
+            <input id="perimeterLocation" placeholder="Example: Miramar Pkwy & University Dr" />
+
+            <label>Zone</label>
+            <select id="perimeterZone"></select>
+
+            <label>Time Delay</label>
+            <select id="perimeterDelay">
+              <option value="2">2 minutes</option>
+              <option value="5" selected>5 minutes</option>
+              <option value="10">10 minutes</option>
+              <option value="15">15 minutes</option>
+              <option value="20">20 minutes</option>
+            </select>
+
+            <label>Direction of Travel</label>
+            <select id="perimeterDirection">
+              <option value="Unknown">Unknown</option>
+              <option value="N">North</option>
+              <option value="E">East</option>
+              <option value="S">South</option>
+              <option value="W">West</option>
+              <option value="NE">North-East</option>
+              <option value="SE">South-East</option>
+              <option value="SW">South-West</option>
+              <option value="NW">North-West</option>
+            </select>
+
+            <label>Method of Travel</label>
+            <select id="perimeterMethod">
+              <option value="Foot">Foot</option>
+              <option value="Bicycle">Bicycle</option>
+              <option value="Vehicle">Vehicle</option>
+            </select>
+
+            <button id="generatePerimeterBtn" class="primary-btn full-btn">Generate New Perimeter</button>
+          </div>
+
+          <div class="content-card">
+            <div class="section-title">Active Perimeters</div>
+            <div id="activePerimeters" class="feed-list"></div>
+          </div>
+        </section>
+
+        <section id="messagesView" class="view">
+          <div class="content-card">
+            <div class="section-title">Messages</div>
+
+            <label>To</label>
+            <input id="messageTo" placeholder="Officer, unit, or group" />
+
+            <label>Message</label>
+            <textarea id="messageBody" rows="4" placeholder="Type message"></textarea>
+
+            <div class="action-row">
+              <button id="sendMessageBtn" class="primary-btn">Send</button>
+              <button id="recordVoiceBtn">Voice Note</button>
+            </div>
+
+            <audio id="voicePlayback" controls class="hidden"></audio>
+          </div>
+
+          <div class="content-card">
+            <div class="section-title">Message Feed</div>
+            <div id="messageFeed" class="feed-list"></div>
+          </div>
+        </section>
+
+        <section id="officersView" class="view">
+          <div class="content-card">
+            <div class="section-title">Active Units</div>
+            <div id="officerFeed" class="feed-list"></div>
+          </div>
+        </section>
+
+        <section id="settingsView" class="view">
+          <div class="content-card">
+            <div class="section-title">Settings</div>
+
+            <label>Map Style</label>
+            <select id="mapStyle">
+              <option value="mapbox://styles/mapbox/dark-v11">Dark Tactical</option>
+              <option value="mapbox://styles/mapbox/satellite-streets-v12">Satellite Hybrid</option>
+              <option value="mapbox://styles/mapbox/navigation-night-v1">Navigation Night</option>
+            </select>
+
+            <label>Default Alert Mode</label>
+            <select>
+              <option>Zone-Based Alerts</option>
+              <option>All City Alerts</option>
+              <option>Perimeter Only</option>
+            </select>
+
+            <button id="applyMapStyleBtn" class="primary-btn full-btn">Apply Settings</button>
+          </div>
+        </section>
+      </main>
+
+      <aside class="right-panel">
+        <div class="panel-card">
+          <div class="section-title">Active Perimeters</div>
+          <div id="rightPerimeters" class="compact-list"></div>
         </div>
 
-        <label>Zone</label>
-        <select id="intelZone">
-          <option value="Zone 1">Zone 1</option>
-          <option value="Zone 2">Zone 2</option>
-          <option value="Zone 3">Zone 3</option>
-          <option value="Zone 4">Zone 4</option>
-          <option value="Zone 5">Zone 5</option>
-          <option value="Zone 6">Zone 6</option>
-          <option value="Zone 7">Zone 7</option>
-          <option value="Zone 8">Zone 8</option>
-          <option value="Zone 9">Zone 9</option>
-          <option value="Zone 10">Zone 10</option>
-        </select>
-
-        <label>Location / Address</label>
-        <input id="intelLocation" type="text" placeholder="Address, area, or landmark" />
-
-        <label>Subject / Vehicle Info</label>
-        <input id="intelSubject" type="text" placeholder="Plate, vehicle, person, descriptor" />
-
-        <label>Notes</label>
-        <textarea id="intelNotes" rows="4" placeholder="Quick notes"></textarea>
-
-        <label>Expiration Date</label>
-        <input id="intelExpiry" type="date" />
-
-        <div class="action-row">
-          <button id="savePersonalIntelBtn">Save Personal</button>
-          <button id="shareZoneIntelBtn" class="primary-btn">Share to Zone</button>
-        </div>
-      </section>
-    </main>
-
-    <main id="feedView" class="view">
-      <button class="back-btn" data-view="homeView">← Back</button>
-
-      <section class="panel">
-        <div class="section-title">Shared Intel Feed</div>
-        <div id="intelFeed" class="feed-list"></div>
-      </section>
-    </main>
-
-    <main id="messageView" class="view">
-      <button class="back-btn" data-view="homeView">← Back</button>
-
-      <section class="panel">
-        <div class="section-title">Messages</div>
-
-        <label>To</label>
-        <input id="messageTo" type="text" placeholder="Officer, unit, or group" />
-
-        <label>Message</label>
-        <textarea id="messageBody" rows="4" placeholder="Type message"></textarea>
-
-        <div class="action-row">
-          <button id="sendMessageBtn" class="primary-btn">Send</button>
-          <button id="recordVoiceBtn">Voice Note</button>
+        <div class="panel-card">
+          <div class="section-title">Active Units</div>
+          <div id="rightOfficers" class="compact-list"></div>
         </div>
 
-        <audio id="voicePlayback" controls class="hidden"></audio>
-      </section>
+        <div class="panel-card">
+          <div class="section-title">Alerts</div>
+          <div id="rightAlerts" class="compact-list"></div>
+        </div>
+      </aside>
+    </div>
 
-      <section class="panel">
-        <div class="section-title">Message Feed</div>
-        <div id="messageFeed" class="feed-list"></div>
-      </section>
-    </main>
+    <nav class="mobile-nav">
+      <button class="mobile-tab active" data-view="dashboardView">⌂<span>Dash</span></button>
+      <button class="mobile-tab" data-view="feedView">☷<span>Feed</span></button>
+      <button class="mobile-add" data-view="addView">＋</button>
+      <button class="mobile-tab" data-view="messagesView">✉<span>Msg</span></button>
+      <button class="mobile-tab" data-view="perimeterView">◇<span>More</span></button>
+    </nav>
+  </section>
 
-    <main id="officersView" class="view">
-      <button class="back-btn" data-view="homeView">← Back</button>
-
-      <section class="panel">
-        <div class="section-title">Active Officers</div>
-        <div id="officerFeed" class="feed-list"></div>
-      </section>
-    </main>
-
-    <main id="perimeterView" class="view">
-      <button class="back-btn" data-view="homeView">← Back</button>
-
-      <section class="panel">
-        <div class="section-title">Create Perimeter</div>
-
-        <label>Incident Area</label>
-        <input id="perimeterLocation" type="text" placeholder="Incident location / area" />
-
-        <label>Zone</label>
-        <select id="perimeterZone">
-          <option value="Zone 1">Zone 1</option>
-          <option value="Zone 2">Zone 2</option>
-          <option value="Zone 3">Zone 3</option>
-          <option value="Zone 4">Zone 4</option>
-          <option value="Zone 5">Zone 5</option>
-          <option value="Zone 6">Zone 6</option>
-          <option value="Zone 7">Zone 7</option>
-          <option value="Zone 8">Zone 8</option>
-          <option value="Zone 9">Zone 9</option>
-          <option value="Zone 10">Zone 10</option>
-        </select>
-
-        <label>Time Delay</label>
-        <select id="perimeterDelay">
-          <option value="2">2 minutes</option>
-          <option value="5" selected>5 minutes</option>
-          <option value="10">10 minutes</option>
-          <option value="15">15 minutes</option>
-          <option value="20">20 minutes</option>
-        </select>
-
-        <label>Direction of Travel</label>
-        <select id="perimeterDirection">
-          <option value="Unknown">Unknown</option>
-          <option value="N">North</option>
-          <option value="E">East</option>
-          <option value="S">South</option>
-          <option value="W">West</option>
-          <option value="NE">North-East</option>
-          <option value="SE">South-East</option>
-          <option value="SW">South-West</option>
-          <option value="NW">North-West</option>
-        </select>
-
-        <label>Method of Travel</label>
-        <select id="perimeterMethod">
-          <option value="Foot">Foot</option>
-          <option value="Bicycle">Bicycle</option>
-          <option value="Vehicle">Vehicle</option>
-        </select>
-
-        <button id="generatePerimeterBtn" class="primary-btn full-btn">Generate New Perimeter</button>
-      </section>
-
-      <section class="panel">
-        <div class="section-title">Active Perimeters</div>
-        <div id="activePerimeters" class="feed-list"></div>
-      </section>
-    </main>
-  </div>
-
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>
