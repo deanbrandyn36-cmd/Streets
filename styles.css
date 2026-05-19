@@ -12,13 +12,12 @@ body {
 body::before {
   content: "";
   position: fixed;
-  right: -65px;
-  bottom: 70px;
-  width: 330px;
-  height: 330px;
-  background: url("logo-icon.png") no-repeat center;
-  background-size: contain;
-  opacity: 0.045;
+  right: -70px;
+  bottom: 90px;
+  width: 320px;
+  height: 320px;
+  background: url("logo-icon.png") center/contain no-repeat;
+  opacity: 0.04;
   pointer-events: none;
   z-index: 0;
 }
@@ -32,18 +31,16 @@ body::before {
   display: grid;
   place-items: center;
   padding: 20px;
-  background:
-    radial-gradient(circle at top, rgba(0,123,255,0.25), transparent 40%),
-    #050914;
+  background: radial-gradient(circle at top, rgba(0,123,255,.25), transparent 42%), #050914;
 }
 
 .login-card {
   width: min(430px, 100%);
-  background: rgba(7, 14, 30, 0.96);
-  border: 1px solid rgba(58, 150, 255, 0.55);
+  background: rgba(7,14,30,.96);
+  border: 1px solid rgba(58,150,255,.55);
   border-radius: 24px;
   padding: 26px;
-  box-shadow: 0 0 40px rgba(0, 120, 255, 0.25);
+  box-shadow: 0 0 40px rgba(0,120,255,.25);
 }
 
 .login-logo {
@@ -80,8 +77,8 @@ textarea,
 button {
   width: 100%;
   border-radius: 14px;
-  border: 1px solid rgba(75, 132, 200, 0.55);
-  background: rgba(7, 15, 31, 0.98);
+  border: 1px solid rgba(75,132,200,.55);
+  background: rgba(7,15,31,.98);
   color: #f4f8ff;
   padding: 13px;
   font-size: 15px;
@@ -98,13 +95,13 @@ button {
 }
 
 button:active {
-  transform: scale(0.98);
+  transform: scale(.98);
 }
 
 .primary-btn {
   background: linear-gradient(180deg, #008cff, #0058c7);
   border-color: #28a2ff;
-  box-shadow: 0 0 18px rgba(0, 140, 255, 0.28);
+  box-shadow: 0 0 18px rgba(0,140,255,.28);
 }
 
 .danger-btn {
@@ -116,7 +113,7 @@ button:active {
   min-height: 100vh;
   position: relative;
   z-index: 1;
-  padding-bottom: 92px;
+  padding-bottom: 96px;
 }
 
 .app-header {
@@ -125,8 +122,8 @@ button:active {
   align-items: center;
   gap: 12px;
   padding: 14px;
-  background: rgba(5, 10, 22, 0.96);
-  border-bottom: 1px solid rgba(67, 145, 255, 0.28);
+  background: rgba(5,10,22,.96);
+  border-bottom: 1px solid rgba(67,145,255,.28);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -140,7 +137,7 @@ button:active {
 
 .brand-icon {
   height: 46px;
-  filter: drop-shadow(0 0 8px rgba(0, 140, 255, 0.55));
+  filter: drop-shadow(0 0 8px rgba(0,140,255,.55));
 }
 
 .brand-title {
@@ -155,18 +152,28 @@ button:active {
   font-weight: 800;
 }
 
-.officer-strip {
+.officer-info {
   text-align: right;
   font-size: 12px;
   color: #dceaff;
 }
 
-.status-dot {
+.status-dot,
+.legend-dot {
   display: inline-block;
+  border-radius: 50%;
+}
+
+.status-dot {
   width: 9px;
   height: 9px;
-  border-radius: 50%;
   margin-right: 6px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
 }
 
 .green { background: #1fbd5a; }
@@ -176,11 +183,11 @@ button:active {
 
 .map-card {
   margin: 12px;
-  background: rgba(7, 14, 30, 0.94);
-  border: 1px solid rgba(68, 133, 204, 0.4);
+  background: rgba(7,14,30,.94);
+  border: 1px solid rgba(68,133,204,.4);
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 0 24px rgba(0, 123, 255, 0.16);
+  box-shadow: 0 0 24px rgba(0,123,255,.16);
 }
 
 #map {
@@ -197,19 +204,11 @@ button:active {
   font-size: 12px;
 }
 
-.legend-dot {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  margin-right: 5px;
-}
-
 .notification-bar {
   margin: 0 12px 12px;
   padding: 13px;
-  background: rgba(0, 123, 255, 0.13);
-  border: 1px solid rgba(47, 164, 255, 0.5);
+  background: rgba(0,123,255,.13);
+  border: 1px solid rgba(47,164,255,.5);
   border-radius: 18px;
   color: #d7ecff;
   font-weight: 800;
@@ -225,7 +224,7 @@ button:active {
   display: block;
 }
 
-.quick-stats {
+.stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 9px;
@@ -234,8 +233,8 @@ button:active {
 
 .stat-card,
 .panel {
-  background: rgba(7, 14, 30, 0.94);
-  border: 1px solid rgba(68, 133, 204, 0.3);
+  background: rgba(7,14,30,.94);
+  border: 1px solid rgba(68,133,204,.3);
   border-radius: 20px;
   padding: 14px;
 }
@@ -269,8 +268,8 @@ button:active {
 }
 
 .feed-card {
-  background: rgba(3, 10, 22, 0.95);
-  border: 1px solid rgba(72, 129, 204, 0.28);
+  background: rgba(3,10,22,.95);
+  border: 1px solid rgba(72,129,204,.28);
   border-radius: 16px;
   padding: 12px;
 }
@@ -298,7 +297,8 @@ button:active {
   font-size: 12px;
 }
 
-.zone-toggle.active {
+.zone-toggle.active,
+.intel-type.active {
   background: #0078ff;
   border-color: #39a8ff;
 }
@@ -307,11 +307,6 @@ button:active {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-}
-
-.intel-type.active {
-  background: #0078ff;
-  border-color: #39a8ff;
 }
 
 .action-row {
@@ -352,12 +347,12 @@ button:active {
   font-weight: 900;
   text-align: center;
   margin-bottom: 10px;
-  animation: pulseBanner 0.8s infinite;
+  animation: pulseBanner .8s infinite;
 }
 
 @keyframes pulseBanner {
   0% { opacity: 1; }
-  50% { opacity: 0.68; }
+  50% { opacity: .68; }
   100% { opacity: 1; }
 }
 
@@ -366,7 +361,7 @@ button:active {
   height: 20px;
   border: 2px solid white;
   border-radius: 50%;
-  box-shadow: 0 0 14px rgba(0,0,0,0.7);
+  box-shadow: 0 0 14px rgba(0,0,0,.7);
 }
 
 .shared-marker { background: #0099ff; }
@@ -375,7 +370,7 @@ button:active {
 .perimeter-green { background: #1fbd5a; }
 
 .flash-alert {
-  animation: flashPolice 0.7s infinite;
+  animation: flashPolice .7s infinite;
 }
 
 @keyframes flashPolice {
@@ -394,11 +389,11 @@ button:active {
   left: 10px;
   right: 10px;
   z-index: 20;
-  background: rgba(5, 10, 22, 0.97);
-  border: 1px solid rgba(68, 133, 204, 0.5);
+  background: rgba(5,10,22,.97);
+  border: 1px solid rgba(68,133,204,.5);
   border-radius: 24px;
   padding: 8px;
-  box-shadow: 0 0 28px rgba(0, 123, 255, 0.25);
+  box-shadow: 0 0 28px rgba(0,123,255,.25);
 }
 
 .nav-tab,
@@ -425,7 +420,7 @@ button:active {
   border-radius: 50%;
   background: linear-gradient(180deg, #008cff, #0058c7);
   font-size: 30px;
-  box-shadow: 0 0 18px rgba(0, 140, 255, 0.45);
+  box-shadow: 0 0 18px rgba(0,140,255,.45);
 }
 
 .floating-perimeter {
@@ -438,14 +433,14 @@ button:active {
   z-index: 18;
   background: linear-gradient(180deg, #102d58, #071428);
   border-color: #2fa4ff;
-  box-shadow: 0 0 18px rgba(0, 140, 255, 0.35);
+  box-shadow: 0 0 18px rgba(0,140,255,.35);
 }
 
 @media (min-width: 850px) {
   .app-screen {
     max-width: 520px;
     margin: 0 auto;
-    border-left: 1px solid rgba(68, 133, 204, 0.25);
-    border-right: 1px solid rgba(68, 133, 204, 0.25);
+    border-left: 1px solid rgba(68,133,204,.25);
+    border-right: 1px solid rgba(68,133,204,.25);
   }
 }
