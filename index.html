@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>STREETS | Intel in Motion</title>
 
-  <link rel="stylesheet" href="styles.css?v=7" />
+  <link rel="stylesheet" href="styles.css?v=8" />
 
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
@@ -14,42 +14,42 @@
 <body>
   <section id="loginScreen" class="login-screen">
     <div class="login-card">
-      <img src="logo.png" class="login-logo" alt="STREETS Logo" />
+      <img src="logo.png" class="login-logo" />
       <h1>STREETS</h1>
       <p>Intel in Motion</p>
 
       <label>Officer Name</label>
-      <input id="officerName" type="text" placeholder="Officer name" />
+      <input id="officerName" placeholder="Officer name" />
 
       <label>Badge / ID</label>
-      <input id="officerBadge" type="text" placeholder="Badge / ID" />
+      <input id="officerBadge" placeholder="Badge / ID" />
 
       <label>Assigned Zone</label>
       <select id="officerZone"></select>
 
       <label>Role</label>
       <select id="officerRole">
-        <option value="Patrol Officer">Patrol Officer</option>
-        <option value="Sergeant">Sergeant</option>
-        <option value="OIC">OIC</option>
-        <option value="Command Staff">Command Staff</option>
+        <option>Patrol Officer</option>
+        <option>Sergeant</option>
+        <option>OIC</option>
+        <option>Command Staff</option>
       </select>
 
-      <button id="loginBtn" class="primary-btn" onclick="login()">Enter App</button>
+      <button id="loginBtn" class="primary-btn">Enter App</button>
     </div>
   </section>
 
   <section id="appScreen" class="app-screen hidden">
     <header class="app-header">
       <div class="brand">
-        <img src="logo-icon.png" class="brand-icon" alt="STREETS" />
+        <img src="logo-icon.png" class="brand-icon" />
         <div>
           <div class="brand-title">STREETS</div>
           <div class="brand-subtitle">Intel in Motion</div>
         </div>
       </div>
 
-      <div class="officer-strip">
+      <div class="officer-info">
         <div id="officerDisplay">Officer</div>
         <div><span class="status-dot green"></span>Active</div>
       </div>
@@ -65,24 +65,13 @@
       </div>
     </section>
 
-    <section id="notificationBar" class="notification-bar">
-      No active notifications.
-    </section>
+    <section id="notificationBar" class="notification-bar">No active notifications.</section>
 
     <main id="dashboardView" class="view active">
-      <section class="quick-stats">
-        <div class="stat-card">
-          <span>Intel</span>
-          <strong id="statIntel">0</strong>
-        </div>
-        <div class="stat-card">
-          <span>Perimeters</span>
-          <strong id="statPerimeters">0</strong>
-        </div>
-        <div class="stat-card">
-          <span>Units</span>
-          <strong id="statOfficers">0</strong>
-        </div>
+      <section class="stats-grid">
+        <div class="stat-card"><span>Intel</span><strong id="statIntel">0</strong></div>
+        <div class="stat-card"><span>Perimeters</span><strong id="statPerimeters">0</strong></div>
+        <div class="stat-card"><span>Units</span><strong id="statOfficers">0</strong></div>
       </section>
 
       <section class="panel">
@@ -93,7 +82,7 @@
 
     <main id="feedView" class="view">
       <section class="panel">
-        <div class="section-title">Zone Intel Toggle</div>
+        <div class="section-title">Zone Filter</div>
         <div id="zoneToggles" class="zone-grid"></div>
       </section>
 
@@ -118,10 +107,10 @@
         <select id="intelZone"></select>
 
         <label>Location / Intersection</label>
-        <input id="intelLocation" type="text" placeholder="Miramar Pkwy & SW 64 Ave" />
+        <input id="intelLocation" placeholder="Miramar Pkwy & SW 64 Ave" />
 
         <label>Subject / Vehicle Info</label>
-        <input id="intelSubject" type="text" placeholder="Plate, vehicle, person, descriptor" />
+        <input id="intelSubject" placeholder="Plate, vehicle, person, descriptor" />
 
         <label>Notes</label>
         <textarea id="intelNotes" rows="4" placeholder="Brief notes"></textarea>
@@ -136,48 +125,12 @@
       </section>
     </main>
 
-    <main id="messagesView" class="view">
-      <section class="panel">
-        <div class="section-title">Messages</div>
-
-        <label>To</label>
-        <input id="messageTo" type="text" placeholder="Officer, unit, or group" />
-
-        <label>Message</label>
-        <textarea id="messageBody" rows="4" placeholder="Type message"></textarea>
-
-        <div class="action-row">
-          <button id="sendMessageBtn" class="primary-btn">Send</button>
-          <button id="recordVoiceBtn">Voice Note</button>
-        </div>
-
-        <audio id="voicePlayback" controls class="hidden"></audio>
-      </section>
-
-      <section class="panel">
-        <div class="section-title">Message Feed</div>
-        <div id="messageFeed" class="feed-list"></div>
-      </section>
-    </main>
-
-    <main id="moreView" class="view">
-      <section class="panel">
-        <div class="section-title">Active Officers</div>
-        <div id="officerFeed" class="feed-list"></div>
-      </section>
-
-      <section class="panel">
-        <div class="section-title">Settings</div>
-        <button id="logoutBtn" class="danger-btn">Logout</button>
-      </section>
-    </main>
-
     <main id="perimeterView" class="view">
       <section class="panel">
         <div class="section-title">Create Perimeter</div>
 
         <label>Incident Area</label>
-        <input id="perimeterLocation" type="text" placeholder="Miramar Pkwy & University Dr" />
+        <input id="perimeterLocation" placeholder="Miramar Pkwy & University Dr" />
 
         <label>Zone</label>
         <select id="perimeterZone"></select>
@@ -211,12 +164,48 @@
           <option value="Vehicle">Vehicle</option>
         </select>
 
-        <button id="generatePerimeterBtn" class="primary-btn full-btn">Generate New Perimeter</button>
+        <button id="generatePerimeterBtn" class="primary-btn full-btn">Generate Perimeter</button>
       </section>
 
       <section class="panel">
         <div class="section-title">Active Perimeters</div>
         <div id="activePerimeters" class="feed-list"></div>
+      </section>
+    </main>
+
+    <main id="messagesView" class="view">
+      <section class="panel">
+        <div class="section-title">Messages</div>
+
+        <label>To</label>
+        <input id="messageTo" placeholder="Officer, unit, or group" />
+
+        <label>Message</label>
+        <textarea id="messageBody" rows="4" placeholder="Type message"></textarea>
+
+        <div class="action-row">
+          <button id="sendMessageBtn" class="primary-btn">Send</button>
+          <button id="recordVoiceBtn">Voice Note</button>
+        </div>
+
+        <audio id="voicePlayback" controls class="hidden"></audio>
+      </section>
+
+      <section class="panel">
+        <div class="section-title">Message Feed</div>
+        <div id="messageFeed" class="feed-list"></div>
+      </section>
+    </main>
+
+    <main id="moreView" class="view">
+      <section class="panel">
+        <div class="section-title">Active Officers</div>
+        <div id="officerFeed" class="feed-list"></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-title">Settings</div>
+        <button id="logoutBtn" class="danger-btn">Logout</button>
       </section>
     </main>
 
@@ -231,6 +220,6 @@
     <button class="floating-perimeter" data-view="perimeterView">◇</button>
   </section>
 
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
